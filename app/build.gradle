@@ -1,0 +1,111 @@
+import org.apache.tools.ant.filters.*
+
+buildscript {
+	repositories {
+    	mavenCentral()
+	}
+
+	dependencies {
+		classpath 'com.android.tools.build:gradle:0.6.3'
+	}
+}
+
+apply plugin: 'android'
+
+//*********************************************************************
+//***********************  Sets the package version  ******************
+//*********************************************************************
+version = "1.0.0"
+
+android {
+	compileSdkVersion 16
+	buildToolsVersion '17'
+	defaultConfig {
+	      minSdkVersion 8
+	      targetSdkVersion 18
+	      testPackageName "com.example.gradle_example.test"
+	      testInstrumentationRunner "android.test.InstrumentationTestRunner"
+	}
+	
+	sourceSets {
+		main {
+		    manifest.srcFile 'AndroidManifest.xml'
+		    java.srcDirs = ['src']
+		    resources.srcDirs = ['src']
+		    renderscript.srcDirs = ['src']
+		    res.srcDirs = ['build/target/filtered-resources']
+			assets.srcDirs = ['assets']
+		}
+	
+		instrumentTest.setRoot('test')
+			instrumentTest {
+			     java.srcDirs = ['test/src']
+			     res.srcDirs = ['test/res']
+			     assets.srcDirs = ['test/assets']
+			     resources.srcDirs = ['test/src']
+			}
+	}
+	
+	//*********************************************************************
+	//***************************  Dependencies  **************************
+	//*********************************************************************
+	dependencies {
+	   compile fileTree('libs')
+	   compile project(':libraries:actionbarsherlock')
+	}
+  
+  	//*********************************************************************
+	//*****************  Signing and zipalign automatically  **************
+	//*********************************************************************
+	signingConfigs {
+		release {
+			storeFile file("/Users/juanjo/Desktop/test.keystore")
+			storePassword "****"
+			keyAlias "juanjo"
+			keyPassword "****"
+		}
+	}
+
+	//*********************************************************************
+	//**************************  Run proguard  ***************************
+	//*********************************************************************
+	buildTypes {
+		release {
+			runProguard true
+		    proguardFile getDefaultProguardFile('proguard-android.txt')
+		    proguardFile 'proguard-project.txt'
+			signingConfig signingConfigs.release
+		}
+	}
+	
+	//*********************************************************************
+	//***********************  Filtering resources  ***********************
+	//*********************************************************************
+	task someDebugCustomBuildConfig(type:Copy) {
+	    from('res/') {
+	        include '**/*.xml'
+	        filter(ReplaceTokens, tokens: [
+	            "{saludo": 'Hello Juanjo'
+	            ],
+	            beginToken: '$',
+	            endToken: '}'
+	        )
+	    }
+	    from('res/') {
+	        exclude '**/*.xml'
+	    }
+	    into 'build/target/filtered-resources/'
+	    includeEmptyDirs = true
+	}
+  						
+	configure(someDebugCustomBuildConfig) {
+	    group = BasePlugin.BUILD_GROUP
+	    description = 'Description of my task'
+	}
+	     
+	tasks.whenTaskAdded { task ->
+	    if (task.name == 'generateDebugBuildConfig') {
+	        task.dependsOn someDebugCustomBuildConfig
+	    }
+	}
+}
