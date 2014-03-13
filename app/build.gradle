@@ -59,10 +59,10 @@ android {
 	//*********************************************************************
 	signingConfigs {
 		release {
-			storeFile file("/Users/juanjo/Desktop/test.keystore")
-			storePassword "****"
+			storeFile file("/Users/juanjo/Documents/ADT/test.keystore")
+			storePassword "juanjo"
 			keyAlias "juanjo"
-			keyPassword "****"
+			keyPassword "juanjo"
 		}
 	}
 
